@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+<title>海大餐廳 - 員工管理系統</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, "Microsoft JhengHei", sans-serif;
+    background: #f2f5f9;
+    margin: 0;
+    padding: 20px;
+    color: #263345;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 35px auto;
+}
+
+h1 {
+    text-align: center;
+    color: #24548f;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 3px 12px #00000012;
+}
+
+label {
+    display: block;
+    margin: 12px 0 8px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+button {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #24548f;
+    color: white;
+    font-size: 15px;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.login-button {
+    width: 100%;
+    margin-top: 18px;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    min-width: 800px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background: #dfe8f6;
+}
+
+.notice-btn {
+    background: #e49b26;
+}
+
+.seat-btn {
+    background: #21855b;
+}
+
+.cancel-btn {
+    background: #c54f4f;
+}
+
+.status {
+    color: #666;
+    margin-top: 15px;
+}
+
+a {
+    color: #24548f;
+}
+
+.hidden {
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>海大餐廳員工管理系統</h1>
+    <p class="subtitle">餐廳候位 Queue 管理平台</p>
+
+    <div class="card" id="loginPanel">
+        <h2>員工登入</h2>
+
+        <form id="loginForm">
+            <label for="password">員工密碼</label>
+
+            <input
+                type="password"
+                id="password"
+                required
+                placeholder="請輸入員工密碼"
+                autocomplete="current-password"
+            >
+
+            <button class="login-button"
+                    type="submit">
+                登入管理系統
+            </button>
+        </form>
+
+        <p class="status" id="loginMessage">
+            員工驗證功能尚未連接後端。
+        </p>
+    </div>
+
+    <div class="card hidden" id="adminPanel">
+
+        <div class="toolbar">
+            <h2>目前候位名單</h2>
+            <div>
+                <button id="refreshBtn">
+                    重新整理
+                </button>
+                <button id="logoutBtn">
+                    登出
+                </button>
+            </div>
+        </div>
+
+        <p>目前候位：<strong id="queueCount">0</strong> 組</p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>號碼</th>
+                        <th>姓名</th>
+                        <th>性別</th>
+                        <th>人數</th>
+                        <th>E-mail</th>
+                        <th>候位時間</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+
+                <tbody id="queueTable">
+                </tbody>
+            </table>
+        </div>
+
+        <p class="status" id="adminMessage">
+            尚未取得候位資料。
+        </p>
+    </div>
+
+    <p style="text-align:center; margin-top:25px;">
+        <a href="index.html">返回顧客候位頁面</a>
+    </p>
+
+</div>
+
+<script>
+const loginForm = document.getElementById("loginForm");
+
+loginForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    document.getElementById("loginMessage").textContent =
+        "登入介面建立成功！下一步將連接後端驗證密碼。";
+});
+</script>
+
+</body>
+</html>
