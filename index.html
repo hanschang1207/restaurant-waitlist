@@ -155,14 +155,178 @@ button:hover {
 </div>
 
 <script>
+// 改成自己的 Google Apps Script 部署網址
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbxh7bp_ISPBtlQPnOhYQOMbQe_q8V2j_M-aLYfSpkgS8beWIudGZUf0VaG_Gfb9cPJ32w/exec";
+
 const form = document.getElementById("waitlistForm");
+const result = document.getElementById("result");
+const button = form.querySelector("button");
 
-form.addEventListener("submit", function(event) {
-    event.preventDefault();
+// 跨網域唯讀 JSONP 查詢
+function jsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    const callback = "__wl_cb_" +
+      Date.now() + "_" +
+      Math.random().toString(36).slice(2);
 
-    document.getElementById("result").textContent =
-        "表單檢查成功！下一步連接後端後，才能正式取得候位號碼。";
+    const script = document.createElement("script");
+    const url = new URL(API_URL);
+
+    url.searchParams.set("action", action);
+    url.searchParams.set("prefix", callback);
+
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, value);
+    }
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      delete window[callback];
+      script.remove();
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("查詢逾時"));
+    }, 10000);
+
+    window[callback] = data => {
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("無法連接後端"));
+    };
+
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
+}
+
+// 更新目前候位組數
+async function refreshCount() {
+  try {
+    const data = await jsonp("count");
+    document.getElementById("waitingCount")
+      .textContent = data.waiting + " 組";
+  } catch (err) {
+    document.getElementById("waitingCount")
+      .textContent = "暫時無法取得資料";
+  }
+}
+
+// 每 5 秒自動更新
+refreshCount();
+setInterval(refreshCount, 5000);
+
+// 產生隨機請求編號
+function createToken() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return Array.from(
+    crypto.getRandomValues(new Uint8Array(16)),
+    b => b.toString(16).padStart(2, "0")
+  ).join("");
+}
+
+// 顯示候位號碼
+function showTicket(data) {
+  result.textContent =
+    "登記成功！您的候位號碼：" + data.id +
+    "，前面還有 " + data.ahead + " 組。";
+
+  form.style.display = "none";
+  refreshCount();
+}
+
+// 查詢是否已成功加入 Queue
+async function checkTicket(token) {
+  for (let i = 0; i < 15; i++) {
+    try {
+      const data = await jsonp("status", {
+        request_id: token
+      });
+
+      if (data.found) return data;
+    } catch (err) {
+      console.warn(err);
+    }
+
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
+  return null;
+}
+
+// 送出候位表單
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  button.disabled = true;
+  result.textContent = "正在登記候位，請勿重複送出...";
+
+  let token = sessionStorage.getItem("waitlistToken");
+
+  if (!token) {
+    token = createToken();
+    sessionStorage.setItem("waitlistToken", token);
+  }
+
+  const customer = {
+    action: "join",
+    request_id: token,
+    name: document.getElementById("name").value,
+    gender: document.getElementById("gender").value,
+    email: document.getElementById("email").value,
+    party_size: Number(
+      document.getElementById("party_size").value
+    )
+  };
+
+  try {
+    // no-cors：傳送資料，但不直接讀取回應
+    await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(customer)
+    });
+
+    // 另外查詢，確認資料真的進入 Queue
+    const ticket = await checkTicket(token);
+
+    if (ticket) {
+      showTicket(ticket);
+    } else {
+      result.textContent =
+        "暫時無法確認登記結果，請先勿重複登記。";
+    }
+
+  } catch (err) {
+    result.textContent =
+      "連線發生問題，請檢查網路後重試。";
+  } finally {
+    button.disabled = false;
+  }
 });
+
+// 同一個瀏覽器分頁重新整理時，找回候位
+const savedToken = sessionStorage.getItem("waitlistToken");
+
+if (savedToken) {
+  jsonp("status", { request_id: savedToken })
+    .then(data => {
+      if (data.found) showTicket(data);
+    })
+    .catch(console.warn);
+}
 </script>
 
 </body>
