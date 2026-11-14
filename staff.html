@@ -1,100 +1,322 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
-<title>海大餐廳 - 員工管理</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, "Microsoft JhengHei", sans-serif;
-    background: #f2f5f9;
-    margin: 0;
-    padding: 20px;
-    color: #263345;
-}
-
-.container {
-    max-width: 500px;
-    margin: 80px auto;
-}
-
-h1 {
-    text-align: center;
-    color: #24548f;
-}
-
-.card {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    margin-top: 20px;
-    text-align: center;
-    box-shadow: 0 3px 12px #00000012;
-}
-
-.button {
-    display: block;
-    background: #24548f;
-    color: white;
-    padding: 15px;
-    margin-top: 20px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 18px;
-}
-
-.button:hover {
-    background: #173d6b;
-}
-
-.back {
-    display: block;
-    margin-top: 22px;
-    color: #24548f;
-}
-
-.notice {
-    font-size: 14px;
-    color: #666;
-    line-height: 1.7;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>海大餐廳｜員工管理系統</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; color: #263345; background: #f2f5f9;
+      font-family: Arial, "Microsoft JhengHei", sans-serif; }
+    .container { max-width: 1100px; margin: 24px auto; }
+    h1 { text-align: center; color: #24548f; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: #677386; margin: 0 0 22px; }
+    .card { background: #fff; border-radius: 12px; padding: 24px; margin: 18px 0;
+      box-shadow: 0 3px 12px #00000010; }
+    .login-card { max-width: 440px; margin: 30px auto; }
+    .hidden { display: none !important; }
+    label { display: block; font-weight: bold; margin-bottom: 9px; }
+    input { width: 100%; font: inherit; padding: 13px; border: 1px solid #bdc7d3; border-radius: 7px; }
+    button { font: inherit; border: 0; border-radius: 7px; padding: 10px 14px;
+      cursor: pointer; background: #24548f; color: #fff; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    button:hover:not(:disabled) { filter: brightness(.92); }
+    .full { width: 100%; margin-top: 16px; }
+    .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .bar h2 { margin: 0; }
+    .bar-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+    .status { color: #5f6b7d; margin-top: 12px; line-height: 1.6; }
+    .error { color: #b42318; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px; }
+    .stat { border: 1px solid #dfe8f6; background: #f5f8fc; border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-label { color: #667085; font-size: 14px; }
+    .stat-value { display: block; color: #24548f; font-size: 27px; font-weight: bold; margin: 8px 0 3px; }
+    .date { color: #667085; font-size: 14px; }
+    .scroll { width: 100%; overflow-x: auto; }
+    table { width: 100%; min-width: 850px; border-collapse: collapse; margin-top: 14px; }
+    th, td { border: 1px solid #dbe1e9; padding: 11px 9px; text-align: center; }
+    th { background: #dfe8f6; white-space: nowrap; }
+    td { overflow-wrap: anywhere; }
+    .actions { min-width: 218px; }
+    .actions button { padding: 8px 10px; margin: 2px; font-size: 14px; }
+    .notify { background: #cc881d; }
+    .seat { background: #21855b; }
+    .cancel { background: #b84646; }
+    .back { text-align: center; margin-top: 22px; }
+    a { color: #24548f; }
+    @media (max-width: 560px) { body { padding: 12px; } .card { padding: 17px; } h1 { font-size: 24px; } }
+  </style>
 </head>
-
 <body>
-
 <div class="container">
+  <h1>海大餐廳員工管理系統</h1>
+  <p class="subtitle">GitHub Pages 前端 × Google Apps Script 後端</p>
 
-    <h1>海大餐廳員工管理系統</h1>
+  <section class="card login-card" id="loginPanel">
+    <h2>員工登入</h2>
+    <form id="loginForm">
+      <label for="password">員工密碼</label>
+      <input id="password" type="password" autocomplete="current-password" required placeholder="請輸入員工密碼">
+      <button id="loginBtn" class="full" type="submit">登入管理系統</button>
+    </form>
+    <p id="loginMessage" class="status" role="status" aria-live="polite">請輸入員工密碼。</p>
+  </section>
 
+  <section id="adminPanel" class="hidden">
     <div class="card">
-        <h2>員工專用入口</h2>
-
-        <p>請進入管理系統並輸入員工密碼。</p>
-
-        <a class="button"
-           href="https://script.google.com/macros/s/AKfycbxh7bp_ISPBtlQPnOhYQOMbQe_q8V2j_M-aLYfSpkgS8beWIudGZUf0VaG_Gfb9cPJ32w/exec?action=staff">
-            前往員工登入
-        </a>
-
-        <p class="notice">
-            員工登入與候位名單管理
-            由 Google Apps Script 處理。
-        </p>
-
-        <a class="back" href="index.html">
-            返回顧客候位頁面
-        </a>
+      <div class="bar">
+        <h2>今日營運統計</h2>
+        <span id="statsDate" class="date">統計日期：--</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">今日登記</div><span id="statRegistered" class="stat-value">--</span>組</div>
+        <div class="stat"><div class="stat-label">成功入座</div><span id="statSeated" class="stat-value">--</span>組</div>
+        <div class="stat"><div class="stat-label">取消候位</div><span id="statCancelled" class="stat-value">--</span>組</div>
+        <div class="stat"><div class="stat-label">目前等候</div><span id="statWaiting" class="stat-value">--</span>組</div>
+        <div class="stat"><div class="stat-label">平均等待</div><span id="statAverage" class="stat-value">--</span>分鐘</div>
+        <div class="stat"><div class="stat-label">取消率</div><span id="statCancelRate" class="stat-value">--</span>%</div>
+      </div>
     </div>
-
+    <div class="card">
+      <div class="bar">
+        <h2>目前候位名單（<span id="queueCount">--</span> 組）</h2>
+        <div class="bar-buttons">
+          <button id="refreshBtn" type="button">重新整理</button>
+          <button id="logoutBtn" type="button">登出</button>
+        </div>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>號碼</th><th>姓名</th><th>性別</th><th>人數</th><th>E-mail</th><th>候位時間</th><th>狀態</th><th>操作</th></tr></thead>
+          <tbody id="queueTable"><tr><td colspan="8">登入後載入候位資料</td></tr></tbody>
+        </table>
+      </div>
+      <p id="adminMessage" class="status" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+  <p class="back"><a href="index.html">返回顧客候位頁面</a></p>
 </div>
 
+<script>
+// 使用已部署成功的 Apps Script /exec 網址，不要附加 ?action=count
+const API_URL = "https://script.google.com/macros/s/AKfycbxh7bp_ISPBtlQPnOhYQOMbQe_q8V2j_M-aLYfSpkgS8beWIudGZUf0VaG_Gfb9cPJ32w/exec";
+
+let staffToken = "";                 // 僅保留在當前網頁記憶體，不寫入 URL / localStorage
+let timer = null;
+let refreshing = false;
+let actionBusy = false;
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// doGet 的 JSONP 僅用來查詢隨機請求編號所對應的一次性結果
+function jsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    const callback = "__wl_cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    const url = new URL(API_URL);
+    const script = document.createElement("script");
+    let settled = false;
+    url.searchParams.set("action", action);
+    url.searchParams.set("prefix", callback);
+    for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+      delete window[callback];
+      script.remove();
+    };
+    const finish = (err, value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (err) reject(err); else resolve(value);
+    };
+    window[callback] = data => finish(null, data);
+    script.onerror = () => finish(new Error("無法連線到 Google Apps Script"));
+    const timeout = setTimeout(() => finish(new Error("查詢逾時")), 10000);
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
+}
+
+// Code.gs 只接受 32 位十六進位的隨機 request_id
+function makeRequestId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// POST 在 no-cors 模式下無法讀取回應，因此另用 staff_result 輪詢確認結果
+async function callStaff(op, extra = {}) {
+  const request_id = makeRequestId();
+  const body = JSON.stringify({ action: "staff_rpc", op, request_id, ...extra });
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body
+    });
+  } catch (err) {
+    // 網路錯誤時無法確定 POST 是否已被後端收到；仍查同一 request_id，避免重複執行。
+    console.warn("傳送狀態無法確認，查詢原請求結果：", err);
+  }
+
+  for (let n = 0; n < 18; n++) {
+    try {
+      const response = await jsonp("staff_result", { request_id });
+      if (response.ready) {
+        if (!response.ok) throw new Error(response.error || "後端操作失敗");
+        return response.data;
+      }
+    } catch (err) {
+      // 明確的後端錯誤應立即顯示；短暫的 JSONP 連線錯誤則繼續查詢。
+      if (!/無法連線|查詢逾時/.test(err.message)) throw err;
+    }
+    await sleep(900);
+  }
+  throw new Error("無法確認請求結果，請先檢查候位資料，不要立即重複操作。");
+}
+
+function clearLogin(message = "請重新登入。") {
+  clearInterval(timer);
+  timer = null;
+  staffToken = "";
+  $("adminPanel").classList.add("hidden");
+  $("loginPanel").classList.remove("hidden");
+  $("password").value = "";
+  $("loginMessage").textContent = message;
+}
+
+$("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  $("loginBtn").disabled = true;
+  $("loginMessage").textContent = "正在驗證員工密碼...";
+  try {
+    const login = await callStaff("login", { password: $("password").value });
+    if (!login || !login.ok || !login.token) {
+      $("loginMessage").textContent = (login && login.message) || "密碼錯誤";
+      return;
+    }
+    staffToken = login.token;
+    $("password").value = "";
+    $("loginPanel").classList.add("hidden");
+    $("adminPanel").classList.remove("hidden");
+    await refreshDashboard();
+    timer = setInterval(refreshDashboard, 10000);
+  } catch (err) {
+    $("loginMessage").textContent = "登入失敗：" + err.message;
+  } finally {
+    $("loginBtn").disabled = false;
+  }
+});
+
+function addCell(tr, value) {
+  const td = document.createElement("td");
+  td.textContent = String(value ?? ""); // 不使用 innerHTML，避免顧客輸入造成 XSS
+  tr.appendChild(td);
+  return td;
+}
+
+function renderQueue(data) {
+  $("queueCount").textContent = data.waiting;
+  const tbody = $("queueTable");
+  tbody.replaceChildren();
+  if (!data.queue.length) {
+    const tr = document.createElement("tr");
+    const td = addCell(tr, "目前沒有顧客候位");
+    td.colSpan = 8;
+    tbody.appendChild(tr);
+    return;
+  }
+  data.queue.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    addCell(tr, item.id);
+    addCell(tr, item.name);
+    addCell(tr, item.gender);
+    addCell(tr, item.party_size);
+    addCell(tr, item.email);
+    const time = new Date(item.created_at);
+    addCell(tr, Number.isNaN(time.getTime()) ? item.created_at :
+      time.toLocaleString("zh-TW", { timeZone: "Asia/Taipei" }));
+    addCell(tr, item.status === "notified" ? "已通知" : "候位中");
+
+    const td = document.createElement("td");
+    td.className = "actions";
+    const defs = [
+      { text: "通知", op: "notify", cls: "notify", disabled: item.status === "notified" },
+      { text: "入座", op: "seat", cls: "seat", disabled: index !== 0 },
+      { text: "取消", op: "cancel", cls: "cancel", disabled: false }
+    ];
+    for (const def of defs) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = def.cls;
+      button.textContent = def.text;
+      button.disabled = def.disabled;
+      button.addEventListener("click", () => runAction(item, def.op));
+      td.appendChild(button);
+    }
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  });
+}
+
+function renderStats(s) {
+  $("statsDate").textContent = "統計日期：" + s.date;
+  $("statRegistered").textContent = s.registered;
+  $("statSeated").textContent = s.seated;
+  $("statCancelled").textContent = s.cancelled;
+  $("statWaiting").textContent = s.waiting;
+  $("statAverage").textContent = Number(s.averageWaitMinutes).toFixed(1);
+  $("statCancelRate").textContent = Number(s.cancellationRate).toFixed(1);
+}
+
+async function refreshDashboard() {
+  if (!staffToken || refreshing || actionBusy) return;
+  refreshing = true;
+  $("adminMessage").textContent = "正在更新候位與統計資料...";
+  try {
+    const queue = await callStaff("queue", { token: staffToken });
+    renderQueue(queue);
+    const stats = await callStaff("stats", { token: staffToken });
+    renderStats(stats);
+    $("adminMessage").textContent = "資料已更新，共 " + queue.waiting + " 組候位。";
+  } catch (err) {
+    $("adminMessage").textContent = "更新失敗：" + err.message;
+    if (/登入已過期|未登入/.test(err.message)) clearLogin("工作階段已到期，請重新登入。");
+  } finally {
+    refreshing = false;
+  }
+}
+
+async function runAction(item, command) {
+  if (!staffToken || actionBusy || refreshing) return;
+  const labels = { notify: "寄送 Gmail 通知", seat: "安排入座", cancel: "取消候位" };
+  if (!confirm("確定要對 " + item.id + " 號（" + item.name + "）執行「" + labels[command] + "」嗎？")) return;
+  actionBusy = true;
+  $("adminMessage").textContent = "正在執行：" + labels[command] + "...";
+  try {
+    const result = await callStaff("action", {
+      token: staffToken, id: item.id, command
+    });
+    $("adminMessage").textContent = (result && result.message) || "操作成功";
+  } catch (err) {
+    $("adminMessage").textContent = "操作結果：" + err.message;
+    if (/登入已過期|未登入/.test(err.message)) clearLogin("工作階段已到期，請重新登入。");
+  } finally {
+    actionBusy = false;
+  }
+  if (staffToken) await refreshDashboard();
+}
+
+$("refreshBtn").addEventListener("click", refreshDashboard);
+$("logoutBtn").addEventListener("click", async () => {
+  const token = staffToken;
+  clearLogin("已登出。");
+  if (token) {
+    try { await callStaff("logout", { token }); }
+    catch (err) { console.warn("登出後端狀態：", err); }
+  }
+});
+</script>
 </body>
 </html>
