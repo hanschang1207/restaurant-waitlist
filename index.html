@@ -236,12 +236,62 @@ function createToken() {
 
 // 顯示候位號碼
 function showTicket(data) {
-  result.textContent =
-    "登記成功！您的候位號碼：" + data.id +
-    "，前面還有 " + data.ahead + " 組。";
+  const status = data.status || "waiting";
 
   form.style.display = "none";
-  refreshCount();
+  result.replaceChildren();
+
+  const message = document.createElement("p");
+
+  if (status === "waiting") {
+    message.textContent =
+      "您的候位號碼：" + data.id +
+      " 號｜前方等待：" + data.ahead +
+      " 組｜目前總候位：" + data.waiting +
+      " 組｜狀態：候位中";
+
+  } else if (status === "notified") {
+    message.textContent =
+      "您的候位號碼：" + data.id +
+      " 號｜狀態：已通知，請留意現場叫號，" +
+      "並依照店員指示準備入座。";
+
+  } else if (status === "seated") {
+    message.textContent =
+      "您的候位號碼：" + data.id +
+      " 號｜狀態：已入座，祝您用餐愉快！";
+
+  } else if (status === "cancelled") {
+    message.textContent =
+      "您的候位號碼：" + data.id +
+      " 號｜狀態：候位已取消。";
+
+  } else {
+    message.textContent =
+      "候位號碼：" + data.id +
+      "｜目前狀態：" + status;
+  }
+
+  result.appendChild(message);
+
+  // 入座或取消後，允許重新登記
+  if (status === "seated" ||
+      status === "cancelled") {
+
+    sessionStorage.removeItem("waitlistToken");
+
+    const again = document.createElement("button");
+    again.type = "button";
+    again.textContent = "重新登記候位";
+
+    again.addEventListener("click", () => {
+      form.reset();
+      form.style.display = "";
+      result.replaceChildren();
+    });
+
+    result.appendChild(again);
+  }
 }
 
 // 查詢是否已成功加入 Queue
@@ -318,15 +368,46 @@ form.addEventListener("submit", async event => {
 });
 
 // 同一個瀏覽器分頁重新整理時，找回候位
-const savedToken = sessionStorage.getItem("waitlistToken");
+let checkingTicket = false;
 
-if (savedToken) {
-  jsonp("status", { request_id: savedToken })
-    .then(data => {
-      if (data.found) showTicket(data);
-    })
-    .catch(console.warn);
+async function refreshMyTicket() {
+  if (checkingTicket) return;
+
+  const token = sessionStorage.getItem("waitlistToken");
+
+  if (!token) return;
+
+  checkingTicket = true;
+
+  try {
+    const data = await jsonp("status", {
+      request_id: token
+    });
+
+    // 避免舊查詢結果覆蓋新的候位資訊
+    if (
+      sessionStorage.getItem("waitlistToken") !== token
+    ) {
+      return;
+    }
+
+    if (data.found) {
+      showTicket(data);
+    }
+
+  } catch (err) {
+    console.warn("候位資訊更新失敗：", err);
+
+  } finally {
+    checkingTicket = false;
+  }
 }
+
+// 打開網頁時立即查詢
+refreshMyTicket();
+
+// 每 5 秒自動更新個人候位資訊
+setInterval(refreshMyTicket, 5000);
 </script>
 
 </body>
