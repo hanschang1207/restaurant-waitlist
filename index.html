@@ -255,24 +255,6 @@ function showTicket(data) {
       "您的候位號碼：" + data.id +
       " 號｜狀態：已通知，請留意現場叫號，" +
       "並依照店員指示準備入座。";
-   // 候位中或已通知時，允許自行取消
-  if (status === "waiting" ||
-      status === "notified") {
-
-    const cancelBtn = document.createElement("button");
-
-    cancelBtn.type = "button";
-    cancelBtn.textContent = "取消我的候位";
-    cancelBtn.style.background = "#c54f4f";
-
-    cancelBtn.disabled = leaveInProgress;
-
-    cancelBtn.addEventListener("click", cancelMyTicket);
-
-    result.appendChild(cancelBtn);
-  }
-   
-
   } else if (status === "seated") {
     message.textContent =
       "您的候位號碼：" + data.id +
@@ -290,6 +272,17 @@ function showTicket(data) {
   }
 
   result.appendChild(message);
+
+  // 候位中或已通知時，顯示自行取消按鈕
+  if (status === "waiting" || status === "notified") {
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.textContent = "取消我的候位";
+    cancelBtn.style.background = "#c54f4f";
+    cancelBtn.disabled = leaveInProgress;
+    cancelBtn.addEventListener("click", cancelMyTicket);
+    result.appendChild(cancelBtn);
+  }
 
   // 入座或取消後，允許重新登記
   if (status === "seated" ||
