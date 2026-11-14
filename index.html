@@ -255,6 +255,23 @@ function showTicket(data) {
       "您的候位號碼：" + data.id +
       " 號｜狀態：已通知，請留意現場叫號，" +
       "並依照店員指示準備入座。";
+   // 候位中或已通知時，允許自行取消
+  if (status === "waiting" ||
+      status === "notified") {
+
+    const cancelBtn = document.createElement("button");
+
+    cancelBtn.type = "button";
+    cancelBtn.textContent = "取消我的候位";
+    cancelBtn.style.background = "#c54f4f";
+
+    cancelBtn.disabled = leaveInProgress;
+
+    cancelBtn.addEventListener("click", cancelMyTicket);
+
+    result.appendChild(cancelBtn);
+  }
+   
 
   } else if (status === "seated") {
     message.textContent =
@@ -291,6 +308,71 @@ function showTicket(data) {
     });
 
     result.appendChild(again);
+  }
+}
+let leaveInProgress = false;
+
+async function cancelMyTicket() {
+  const token = sessionStorage.getItem("waitlistToken");
+
+  if (!token || leaveInProgress) return;
+
+  if (!confirm("確定要取消目前的候位嗎？")) {
+    return;
+  }
+
+  leaveInProgress = true;
+  result.textContent = "正在取消候位...";
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: "leave",
+        request_id: token
+      })
+    });
+
+    // 因 no-cors 無法直接讀取回應，
+    // 透過 status API 確認取消結果。
+    let completed = null;
+
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 1500));
+
+      const data = await jsonp("status", {
+        request_id: token
+      });
+
+      if (
+        data.found &&
+        (data.status === "cancelled" ||
+         data.status === "seated")
+      ) {
+        completed = data;
+        break;
+      }
+    }
+
+    if (completed) {
+      showTicket(completed);
+      refreshCount();
+    } else {
+      result.textContent =
+        "暫時無法確認取消結果，請勿重複登記，稍後再查看。";
+    }
+
+  } catch (err) {
+    console.error(err);
+    result.textContent =
+      "取消確認失敗，請檢查網路後再查看候位狀態。";
+
+  } finally {
+    leaveInProgress = false;
   }
 }
 
@@ -371,7 +453,7 @@ form.addEventListener("submit", async event => {
 let checkingTicket = false;
 
 async function refreshMyTicket() {
-  if (checkingTicket) return;
+  if (checkingTicket || leaveInProgress) return;
 
   const token = sessionStorage.getItem("waitlistToken");
 
